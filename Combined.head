@@ -1,6 +1,6 @@
 
 /* 
-JSPrimMesher Copyright(c) Teravus @ Dahlia 
+JSPrimMesher Copyright(c) Teravus @ Dahlia https://github.com/Teravus/JSPrimMesher
 JavaScript Port of PrimMesher - Teravus (teravus 47 gmail d0t c0m)
 
 The primary developer of the original 
