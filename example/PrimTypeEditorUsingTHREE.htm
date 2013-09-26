@@ -1,0 +1,867 @@
+<html itemscope="" itemtype="http://schema.org/WebPage">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<title>Test</title>
+<script language="javascript" src="jsprimmesher.min.js" type="application/javascript"> </script>
+<script type="text/javascript" language="javascript" src="three.min.js"></script>
+<script type="text/javascript" language="javascript" src="stats.min.js"></script>	
+<style>
+body { font-size:13px;
+color: #61443e;
+			font-family:Monospace;
+			font-size:13px;
+			text-align:center;
+
+			background-color: #bfd1e5;
+			margin: 0px;
+			overflow:hidden;
+}
+.leftitem { width:202px;float:left; text-height:14px; font-weight:bold}
+.lefteditheader { width:30px;font-weight:bold; text-align:center; float:left; color:#FFF}
+.leftedititem { width:100px;float:left; }
+.leftiteminput { width:100px; font-size:10px}
+
+.rightitem { width:224px;float:left; }
+.righteditheader { width:15px;font-weight:bold; float:left; color:#FFF;}
+.rightedititem { width:80px;float:left; margin-right:10px; }
+.rightiteminput { width:80px; font-size:10px;}
+.rightedititemfullline { width:90px;float:left; }
+.rightiteminputfullline { width:95px; font-size:10px;}
+.selectitem {width:200px; font-size:10px; }
+.invisible {visibility:hidden;display:none;}
+</style>
+</head>
+<body onLoad="PageLoad()">
+<div id="output"></div>
+<script language="javascript">
+
+
+var PrimSettings;	
+var container, stats;
+
+var camera, controls, scene, renderer;
+
+var mesh, texture, lightbulb2,lightbulb;
+
+var worldWidth = 800, worldDepth = 800,	worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2;
+var clock ;
+var SOG;
+var tainted = true;
+function PageLoad()
+{
+	PrimSettings = new PrimBoxParams();
+
+	
+	var positionx = document.getElementById("positionx");
+	var positiony = document.getElementById("positiony");
+	var positionz = document.getElementById("positionz");
+	var scalex = document.getElementById("scalex");
+	var scaley = document.getElementById("scaley");
+	var scalez = document.getElementById("scalez");
+	var rotationx = document.getElementById("rotationx");
+	var rotationy = document.getElementById("rotationy");
+	var rotationz = document.getElementById("rotationz");
+	var primshape = document.getElementById("primshape");
+	var pathcutb = document.getElementById("pathcutb");
+	var pathcute = document.getElementById("pathcute");
+	var hollow = document.getElementById("hollow");
+	var skew = document.getElementById("skew");
+	var hollowshape = document.getElementById("hollowshape");
+	var twistb = document.getElementById("twistb");
+	var twiste = document.getElementById("twiste");
+	var holesizex = document.getElementById("holesizex");
+	var holesizey = document.getElementById("holesizey");
+	var topsheerx = document.getElementById("topsheerx");
+	var topsheery = document.getElementById("topsheery");
+	var profilecutb = document.getElementById("profilecutb");
+	var profilecute = document.getElementById("profilecute");
+	var taperx = document.getElementById("taperx");
+	var tapery = document.getElementById("tapery");
+	var radius = document.getElementById("radius");
+	var revolutions = document.getElementById("revolutions");
+	positionx.value = PrimSettings.PositionX;
+	positiony.value = PrimSettings.PositionY;
+	positionz.value = PrimSettings.PositionZ;
+	scalex.value = PrimSettings.ScaleX;
+	scaley.value = PrimSettings.ScaleY;
+	scalez.value = PrimSettings.ScaleZ;
+	rotationx.value = PrimSettings.RotationX;
+	rotationy.value = PrimSettings.RotationY;
+	rotationz.value = PrimSettings.RotationZ;
+	SetSelect(primshape,PrimSettings.BuildingBlockType);
+	
+	pathcutb.value = PrimSettings.PathCutB;
+	pathcute.value = PrimSettings.PathCutE;
+	hollow.value = PrimSettings.Hollow;
+	skew.value = PrimSettings.Skew;
+	SetSelect(hollowshape,PrimSettings.HollowShape);
+	twistb.value = PrimSettings.TwistB;
+	twiste.value = PrimSettings.TwistE;
+	holesizex.value = PrimSettings.HoleSizeX;
+	holesizey.value = PrimSettings.HoleSizeY;
+	topsheerx.value = PrimSettings.TopShearX;
+	topsheery.value = PrimSettings.TopShearY;
+	profilecutb.value = PrimSettings.SliceB;
+	profilecute.value = PrimSettings.SliceE;
+	taperx.value = PrimSettings.TaperX;
+	tapery.value = PrimSettings.TaperY;
+	radius.value = PrimSettings.Radius;
+	revolutions.value = PrimSettings.Revolutions;
+	prepthree();
+	RegeneratePrim();
+	animate();
+}
+function prepthree()
+{
+	container = document.getElementById('container');
+	
+    camera = new THREE.PerspectiveCamera(35, 400 / 400, 0.1, 10000);
+	
+	camera.updateProjectionMatrix();
+    scene = new THREE.Scene();	
+	clock = new THREE.Clock();
+	//controls = new THREE.FirstPersonControls(camera);
+	//controls.movementSpeed = 20;
+	//controls.lookSpeed = 0.1;
+	//controls.target.copy(scene.position);
+	
+	var light = new THREE.PointLight(0xffffff);
+	light.position.set(-100, 150, 128);
+
+	var lightbulbGeometry = new THREE.SphereGeometry(2, 2, 2);
+	var lightbulbMaterial = new THREE.MeshBasicMaterial({ color: 0xffff44, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+	var wireMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
+	var materialArray = [lightbulbMaterial, wireMaterial];
+	lightbulb = THREE.SceneUtils.createMultiMaterialObject(lightbulbGeometry, materialArray);
+	
+	lightbulb.position = light.position;
+	
+	scene.add(lightbulb);
+	scene.add(light);
+
+	var light2 = new THREE.PointLight(0xffffff);
+	light2.position.set(200, 150, 100);
+	var lightbulbGeometry2 = new THREE.SphereGeometry(10, 16, 8);
+	var lightbulbMaterial2 = new THREE.MeshBasicMaterial({ color: 0xffff44, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+	var wireMaterial2 = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
+	var materialArray2 = [lightbulbMaterial2, wireMaterial2];
+	lightbulb2 = THREE.SceneUtils.createMultiMaterialObject(lightbulbGeometry2, materialArray2);
+   
+	lightbulb2.position = light2.position;
+	
+	scene.add(lightbulb2);
+	scene.add(light2);
+
+	var ambient = new THREE.AmbientLight(0x333333);
+	scene.add(ambient);
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize(400, 400);
+	//renderer.sortObjects = false;
+	container.innerHTML = "";
+	container.style.borderWidth = "5px";
+	container.style.borderColor = "#000000";
+	
+	container.appendChild(renderer.domElement);
+	stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+	container.appendChild(stats.domElement);
+}
+
+function render() {
+	
+	//controls.update(clock.getDelta());
+	renderer.render(scene, camera);
+	//console.info(controls.object.position.x + ", " + controls.object.position.y + ", " + controls.object.position.z);
+}
+
+function animate() {
+	requestAnimationFrame(animate);
+	if (tainted)
+		RegeneratePrim();
+	tainted = false;
+	render();
+	stats.update();
+}
+
+function RegeneratePrim()
+{
+	var positionx = document.getElementById("positionx");
+	var positiony = document.getElementById("positiony");
+	var positionz = document.getElementById("positionz");
+	var scalex = document.getElementById("scalex");
+	var scaley = document.getElementById("scaley");
+	var scalez = document.getElementById("scalez");
+	var rotationx = document.getElementById("rotationx");
+	var rotationy = document.getElementById("rotationy");
+	var rotationz = document.getElementById("rotationz");
+	var primshape = document.getElementById("primshape");
+	var pathcutb = document.getElementById("pathcutb");
+	var pathcute = document.getElementById("pathcute");
+	var hollow = document.getElementById("hollow");
+	var skew = document.getElementById("skew");
+	var hollowshape = document.getElementById("hollowshape");
+	var twistb = document.getElementById("twistb");
+	var twiste = document.getElementById("twiste");
+	var holesizex = document.getElementById("holesizex");
+	var holesizey = document.getElementById("holesizey");
+	var topsheerx = document.getElementById("topsheerx");
+	var topsheery = document.getElementById("topsheery");
+	var profilecutb = document.getElementById("profilecutb");
+	var profilecute = document.getElementById("profilecute");
+	var taperx = document.getElementById("taperx");
+	var tapery = document.getElementById("tapery");
+	var radius = document.getElementById("radius");
+	var revolutions = document.getElementById("revolutions");
+	
+	ReplaceNonNumeric(positionx,positionx.value,PrimSettings.PositionX);
+	ReplaceNonNumeric(positiony,positiony.value,PrimSettings.PositionY);
+	ReplaceNonNumeric(positionz,positionz.value,PrimSettings.PositionZ);
+	ReplaceNonNumeric(scalex,scalex.value,PrimSettings.ScaleX);
+	ReplaceNonNumeric(scaley,scaley.value,PrimSettings.ScaleY);
+	ReplaceNonNumeric(scalez,scalez.value,PrimSettings.ScaleZ);
+	ReplaceNonNumeric(rotationx,rotationx.value,PrimSettings.RotationX);
+	ReplaceNonNumeric(rotationy,rotationy.value,PrimSettings.RotationY);
+	ReplaceNonNumeric(rotationz,rotationz.value,PrimSettings.RotationZ);
+	
+	
+	var PrimShapeVal = ValidateSelect(primshape,primshape.options[primshape.selectedIndex].innerHTML,PrimSettings.BuildingBlockType);
+	if (PrimShapeVal)
+		PrimSettings.BuildingBlockType = PrimShapeVal;
+	
+	ReplaceNonNumeric(pathcutb,pathcutb.value,PrimSettings.PathCutB);
+	ReplaceNonNumeric(pathcute,pathcute.value,PrimSettings.PathCutE);
+	ReplaceNonNumeric(hollow,hollow.value,PrimSettings.Hollow);
+	ReplaceNonNumeric(skew,skew.value,PrimSettings.Skew);
+	
+	var HollowShapeVal = ValidateSelect(hollowshape,hollowshape.value,PrimSettings.HollowShape)
+	if (HollowShapeVal)
+		PrimSettings.HollowShape = HollowShapeVal;
+	
+	ReplaceNonNumeric(twistb,twistb.value,PrimSettings.TwistB);
+	ReplaceNonNumeric(twiste,twiste.value,PrimSettings.TwistE);
+	
+	ReplaceNonNumeric(holesizex,holesizex.value,PrimSettings.HolesizeX);
+	ReplaceNonNumeric(holesizey,holesizey.value,PrimSettings.HolesizeY);
+	
+	ReplaceNonNumeric(topsheerx,topsheerx.value,PrimSettings.TopShearX);
+	ReplaceNonNumeric(topsheery,topsheery.value,PrimSettings.TopShearY);
+	
+	ReplaceNonNumeric(profilecutb,profilecutb.value,PrimSettings.SliceB);
+	ReplaceNonNumeric(profilecute,profilecute.value,PrimSettings.SliceE);
+	
+	ReplaceNonNumeric(taperx,taperx.value,PrimSettings.TaperX);
+	ReplaceNonNumeric(tapery,tapery.value,PrimSettings.TaperY);
+	
+	ReplaceNonNumeric(radius,radius.value,PrimSettings.Radius);
+	
+	ReplaceNonNumeric(revolutions,revolutions.value,PrimSettings.Revolutions);
+	/// Validate min/maxes
+	
+	ValidateNumeric(positionx,positionx.value,-256,512,PrimSettings.PositionX);
+	ValidateNumeric(positiony,positiony.value,-256,512,PrimSettings.PositionY);
+	ValidateNumeric(positionz,positionz.value,-4,4096,PrimSettings.PositionZ);
+	ValidateNumeric(scalex,scalex.value,0.01,64,PrimSettings.ScaleX);
+	ValidateNumeric(scaley,scaley.value,0.01,64,PrimSettings.ScaleY);
+	ValidateNumeric(scalez,scalez.value,0.01,64,PrimSettings.ScaleZ);
+	ValidateNumeric(rotationx,rotationx.value,-360,360,PrimSettings.RotationX);
+	ValidateNumeric(rotationy,rotationy.value,-360,360,PrimSettings.RotationY);
+	ValidateNumeric(rotationz,rotationz.value,-360,360,PrimSettings.RotationZ);	
+	ValidateNumeric(pathcutb,pathcutb.value,0,0.98,PrimSettings.PathCutB);
+	ValidateNumeric(pathcute,pathcute.value,0.025,1,PrimSettings.PathCutE);
+	ValidateNumeric(hollow,hollow.value,0,0.95,PrimSettings.Hollow);
+	ValidateNumeric(skew,skew.value,-0.95,0.95,PrimSettings.Skew);
+	ValidateNumeric(twistb,twistb.value,-180,180,PrimSettings.TwistB);
+	ValidateNumeric(twiste,twiste.value,-180,180,PrimSettings.TwistE);
+	ValidateNumeric(holesizex,holesizex.value,0.01,1,PrimSettings.HolesizeX);
+	ValidateNumeric(holesizey,holesizey.value,0.01,0.5,PrimSettings.HolesizeY);
+	ValidateNumeric(topsheerx,topsheerx.value,-0.5,0.5,PrimSettings.TopShearX);
+	ValidateNumeric(topsheery,topsheery.value,-0.5,0.5,PrimSettings.TopShearY);
+	ValidateNumeric(profilecutb,profilecutb.value,0,0.98,PrimSettings.SliceB);
+	ValidateNumeric(profilecute,profilecute.value,0.02,1,PrimSettings.SliceE);
+	ValidateNumeric(taperx,taperx.value,-1,1,PrimSettings.TaperX);
+	ValidateNumeric(tapery,tapery.value,-1,1,PrimSettings.TaperY);
+	ValidateNumeric(radius,radius.value,-0.75,0.75,PrimSettings.Radius);
+	ValidateNumeric(revolutions,revolutions.value,1,4,PrimSettings.Revolutions);
+	
+	PrimSettings.PositionX = parseFloat(positionx.value);
+	PrimSettings.PositionY = parseFloat(positiony.value);
+	PrimSettings.PositionZ = parseFloat(positionz.value);
+	PrimSettings.ScaleX = parseFloat(scalex.value);
+	PrimSettings.ScaleY = parseFloat(scaley.value);
+	PrimSettings.ScaleZ = parseFloat(scalez.value);
+	PrimSettings.RotationX = parseFloat(rotationx.value);
+	PrimSettings.RotationY = parseFloat(rotationy.value);
+	PrimSettings.RotationZ = parseFloat(rotationz.value);
+	
+	var ComparisionPrim = new PrimBoxParams();
+	
+	PrimSettings.PathCutB = parseFloat(pathcutb.value);
+	PrimSettings.PathCutE = parseFloat(pathcute.value);
+	PrimSettings.Hollow = parseFloat(hollow.value);
+	PrimSettings.Skew = parseFloat(skew.value);
+	PrimSettings.TwistB = parseFloat(twistb.value);
+	PrimSettings.TwistE = parseFloat(twiste.value);
+	PrimSettings.HoleSizeX = parseFloat(holesizex.value);
+	PrimSettings.HoleSizeY = parseFloat(holesizey.value);
+	PrimSettings.TopShearX = parseFloat(topsheerx.value);
+	PrimSettings.TopShearY = parseFloat(topsheery.value);
+	PrimSettings.SliceB = parseFloat(profilecutb.value);
+	PrimSettings.SliceE = parseFloat(profilecute.value);
+	PrimSettings.TaperX = parseFloat(taperx.value);
+	PrimSettings.TaperY = parseFloat(tapery.value);
+	PrimSettings.Radius = parseFloat(radius.value);
+	PrimSettings.Revolutions = parseFloat(revolutions.value);
+	PrimSettings.BuildingBlockType = primshape.value;
+	PrimSettings.HollowShape = hollowshape.value;
+	
+	PrimSettings.BuildingBlockType = primshape.value;
+	PrimSettings.HollowShape = hollowshape.value;
+	
+	
+	
+	
+	
+	
+	switch (primshape.value)
+	{
+		case "Box": 
+			PrimSettings.Sides = 4;
+			PrimSettings.ExtrudeType = JSPrimMesher.PathType.Linear;
+			break;
+		
+		case "Prism" : 
+			PrimSettings.Sides = 3;
+			PrimSettings.ExtrudeType = JSPrimMesher.PathType.Linear;
+			break;
+		case "Cylinder": 
+			PrimSettings.Sides = 24;
+			PrimSettings.ExtrudeType = JSPrimMesher.PathType.Linear;
+			break;
+			
+		case "Tube" : 
+			PrimSettings.Sides = 24;
+			PrimSettings.ExtrudeType = JSPrimMesher.PathType.Circular;
+			break;	
+		case "Ring" : 
+			PrimSettings.Sides = 3;
+			PrimSettings.ExtrudeType = JSPrimMesher.PathType.Circular;
+			break;	
+			
+		case "Sphere" :
+			PrimSettings.Sides = 24;
+			PrimSettings.ExtrudeType = JSPrimMesher.PathType.Circular;
+			break;
+		
+		default:
+			PrimSettings.Sides = 24;
+			PrimSettings.ExtrudeType = JSPrimMesher.PathType.Circular;
+			break;
+	}
+	
+	
+
+	switch (hollowshape.value)
+	{
+		case "Square" : PrimSettings.HollowSides = 4;
+			break;
+		case "Triangle" : PrimSettings.HollowSides = 3;
+			break;	
+		case "Circle" : PrimSettings.HollowSides = 24;
+			break;
+		default :	PrimSettings.HollowSides = PrimSettings.Sides;
+			break;
+	}
+	
+	ComparisionPrim.PathCutB = parseFloat(pathcutb.value);
+	ComparisionPrim.PathCutE = parseFloat(pathcute.value);
+	ComparisionPrim.Hollow = parseFloat(hollow.value);
+	ComparisionPrim.Skew = parseFloat(skew.value);
+	ComparisionPrim.TwistB = parseFloat(twistb.value);
+	ComparisionPrim.TwistE = parseFloat(twiste.value);
+	ComparisionPrim.HoleSizeX = parseFloat(holesizex.value);
+	ComparisionPrim.HoleSizeY = parseFloat(holesizey.value);
+	ComparisionPrim.TopShearX = parseFloat(topsheerx.value);
+	ComparisionPrim.TopShearY = parseFloat(topsheery.value);
+	ComparisionPrim.SliceB = parseFloat(profilecutb.value);
+	ComparisionPrim.SliceE = parseFloat(profilecute.value);
+	ComparisionPrim.TaperX = parseFloat(taperx.value);
+	ComparisionPrim.TaperY = parseFloat(tapery.value);
+	ComparisionPrim.Radius = parseFloat(radius.value);
+	ComparisionPrim.Revolutions = parseFloat(revolutions.value);
+	
+	ComparisionPrim.BuildingBlockType = primshape.value;
+	ComparisionPrim.HollowShape = hollowshape.value;
+	
+	//var meshchanged = PrimSettings.UniqueString() == ComparisionPrim.UniqueString();
+	
+	UpdateEditOptions(PrimSettings);
+	//if (meshchanged) 
+	//{
+		//var debug = document.getElementById("debug");
+		//debug.innerHTML = JSON.stringify(PrimSettings);
+		
+		var Prim = new JSPrimMesher.PrimMesh(PrimSettings.Sides, PrimSettings.SliceB, PrimSettings.SliceE, PrimSettings.Hollow, PrimSettings.HollowSides);
+		
+		Prim.twistBegin = PrimSettings.TwistB;
+		Prim.twistEnd = PrimSettings.TwistE;
+		Prim.topShearX = PrimSettings.TopShearX;
+		Prim.topShearY = PrimSettings.TopShearY;
+		if (PrimSettings.ExtrudeType == JSPrimMesher.PathType.Circular) {
+			Prim.pathCutBegin = PrimSettings.PathCutB;
+			Prim.pathCutEnd = PrimSettings.PathCutE;
+			Prim.profileStart = PrimSettings.SliceB;
+			Prim.profileEnd = PrimSettings.SliceE;
+		} else {
+			Prim.pathCutBegin = PrimSettings.SliceB;
+			Prim.pathCutEnd = PrimSettings.SliceE;
+			Prim.profileStart = PrimSettings.PathCutB;
+			Prim.profileEnd = PrimSettings.PathCutE;
+			
+		}
+		
+		
+		Prim.skew = PrimSettings.Skew;
+		
+		Prim.holeSizeX = PrimSettings.HoleSizeX;
+		Prim.holeSizeY = PrimSettings.HoleSizeY;
+		if (PrimSettings.BuildingBlockType == "Sphere") {
+			Prim.holeSizeX = 1; Prim.holeSizeY = 1;	
+			Prim.profileStart = (Prim.profileStart * 0.5) + 0.5;
+			Prim.profileEnd = (Prim.profileEnd * 0.5) + 0.5;
+			Prim.sphereMode = true;
+		}
+		if (PrimSettings.BuildingBlockType == "Tube") {
+			Prim.holeSizeX = 1;
+			Prim.holeSizeY = 0.5;	
+			Prim.profileStart = (Prim.profileStart * 0.5) + 0.5;
+			Prim.profileEnd = (Prim.profileEnd * 0.5) + 0.5;
+		}
+		Prim.taperX = PrimSettings.TaperX;
+		Prim.taperY = PrimSettings.TaperY;
+		Prim.radius = PrimSettings.Radius;
+		Prim.revolutions = PrimSettings.Revolutions;
+		Prim.stepsPerRevolution = 24;
+		Prim.viewerMode = true;
+		Prim.Extrude(PrimSettings.ExtrudeType);
+		
+		//Prim.Scale(PrimSettings.ScaleX,PrimSettings.ScaleY,PrimSettings.ScaleZ);
+		
+		//debug.innerHTML = JSON.stringify(Prim.viewerFaces);
+		
+		var viewerfaces = [];
+		for (var i=0;i<Prim.viewerFaces.length;i++) {
+			var Face = {};
+			var vertices = []; 
+			var normals = [];
+			var uvs = [];
+			var coords = [];
+			vertices.push([Prim.viewerFaces[i].v1.X, Prim.viewerFaces[i].v1.Y, Prim.viewerFaces[i].v1.Z]);
+			vertices.push([Prim.viewerFaces[i].v2.X, Prim.viewerFaces[i].v2.Y, Prim.viewerFaces[i].v2.Z]);
+			vertices.push([Prim.viewerFaces[i].v3.X, Prim.viewerFaces[i].v3.Y, Prim.viewerFaces[i].v3.Z]);
+			normals.push([Prim.viewerFaces[i].n1.X, Prim.viewerFaces[i].n1.Y, Prim.viewerFaces[i].n1.Z]);
+			normals.push([Prim.viewerFaces[i].n2.X, Prim.viewerFaces[i].n2.Y, Prim.viewerFaces[i].n2.Z]);
+			normals.push([Prim.viewerFaces[i].n3.X, Prim.viewerFaces[i].n3.Y, Prim.viewerFaces[i].n3.Z]);
+			uvs.push([Prim.viewerFaces[i].uv1.U, Prim.viewerFaces[i].uv1.V]);
+			uvs.push([Prim.viewerFaces[i].uv2.U, Prim.viewerFaces[i].uv2.V]);
+			uvs.push([Prim.viewerFaces[i].uv3.U, Prim.viewerFaces[i].uv3.V]);
+			coords.push([Prim.viewerFaces[i].coordIndex1]);
+			coords.push([Prim.viewerFaces[i].coordIndex2]);	
+			coords.push([Prim.viewerFaces[i].coordIndex3]);
+			
+			Face.vertices = vertices;
+			Face.normals = normals;
+			Face.uvs = uvs;
+			Face.materialindex = Prim.viewerFaces[i].primFaceNumber;
+			Face.coords=coords;
+			viewerfaces.push(Face);
+		}
+		
+		var group = new THREE.Geometry();
+		for (var j = 0; j < viewerfaces.length; j++) {
+	
+	
+			var faceverticies = viewerfaces[j].vertices;
+			var facecoords = viewerfaces[j].coords;
+			var facenormals = viewerfaces[j].normals;
+			var faceuvs = viewerfaces[j].uvs;
+			var faceindex = viewerfaces[j].materialindex;
+			if (faceindex == -1) {
+				faceindex = 0;
+			}
+			//console.debug(faceindex);
+			group.vertices.push(new THREE.Vector3(faceverticies[0][0], faceverticies[0][1], faceverticies[0][2]));
+			group.vertices.push(new THREE.Vector3(faceverticies[1][0], faceverticies[1][1], faceverticies[1][2]));
+			group.vertices.push(new THREE.Vector3(faceverticies[2][0], faceverticies[2][1], faceverticies[2][2]));
+	
+			var normals = new Array();
+			normals.push(new THREE.Vector3(facenormals[0][0], facenormals[0][1], facenormals[0][2]));
+			normals.push(new THREE.Vector3(facenormals[1][0], facenormals[1][1], facenormals[1][2]));
+			normals.push(new THREE.Vector3(facenormals[2][0], facenormals[2][1], facenormals[2][2]));
+	
+			var afaceuvs = new Array();
+			afaceuvs.push(new THREE.Vector2(1 - faceuvs[0][0], 1 - faceuvs[0][1]));
+			afaceuvs.push(new THREE.Vector2(1 - faceuvs[1][0], 1 - faceuvs[1][1]));
+			afaceuvs.push(new THREE.Vector2(1 - faceuvs[2][0], 1 - faceuvs[2][1]));
+			group.faceVertexUvs[0].push(afaceuvs);
+	
+			
+			var face = new THREE.Face3(j * 3 + 0, j * 3 + 1, j * 3 + 2);
+	
+			face.materialIndex = 0;
+	
+			group.faces.push(face);
+		}
+		//getCachedObj(
+		group.computeCentroids();
+		group.computeFaceNormals();
+		var materials = [];
+		var defaultcoloritem = new THREE.Vector4(0.9, 0.9, 0.9, 0.3);
+		var defaultmat = new THREE.MeshLambertMaterial({ color: new THREE.Color(0x666666)}); //.setRGB(defaultcoloritem.x, defaultcoloritem.y, defaultcoloritem.z) });
+		var mat2 = defaultmat;
+		materials.push(defaultmat);
+		materials.push(defaultmat);
+		mat2 = new THREE.MeshFaceMaterial(materials)
+		
+		mat2 = defaultmat;//new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
+		var outmesh = new THREE.Mesh(group,mat2);
+		//outmesh.position.set(PrimSettings.PositionY, PrimSettings.PositionZ, PrimSettings.PositionX);
+		
+		//outmesh.scale.set(PrimSettings.ScaleX,PrimSettings.ScaleY,PrimSettings.ScaleZ);
+		var origorient = new THREE.Quaternion(0, 0, 0, 1).setFromEuler(new THREE.Vector3(0, 0, 0));
+		var serverquat = new THREE.Quaternion(0, 0, 0, 1).setFromEuler(PrimSettings.RotationX,PrimSettings.RotationZ,PrimSettings.RotationY); 
+		//var serverquat = new THREE.Quaternion(prim.rotationoffset[0], prim.rotationoffset[1], prim.rotationoffset[2], -prim.rotationoffset[3]).inverse();
+		var ThreeOrient = origorient.multiply(serverquat);
+		serverquat = null;
+		
+		outmesh.rotation.setEulerFromQuaternion(ThreeOrient);
+		scene.remove(SOG);
+		SOG = new THREE.Object3D();
+		SOG.add(outmesh);
+	//}
+	SOG.position.set(PrimSettings.PositionY, PrimSettings.PositionZ, PrimSettings.PositionX);
+
+	SOG.rotation.x = PrimSettings.RotationY;
+	SOG.rotation.y = PrimSettings.RotationZ;
+	SOG.rotation.z = PrimSettings.RotationX;
+	SOG.name = "ffoooff";
+	//if (meshchanged)
+		scene.add(SOG);
+		
+	camera.position.z = lightbulb.position.z - 5;
+	SOG.position.copy(lightbulb.position);
+	camera.lookAt(SOG.position);
+	SOG.scale = new THREE.Vector3(PrimSettings.ScaleX + 1, PrimSettings.ScaleZ + 1, PrimSettings.ScaleY + 1);
+	
+	/* var sphere = new THREE.Mesh(
+
+  new THREE.SphereGeometry(
+    50,
+    16,
+    16),
+
+  new THREE.MeshLambertMaterial(  {
+      color: 0xCC0000
+    }));
+	scene.add(sphere);
+	sphere.position.x = 1;
+	sphere.position.y = 1;
+	sphere.position.z = 1;
+	*/
+	//camera.position.copy(SOG.position);
+	//camera.position.z-= 30;
+	//camera.lookAt(SOG.position);
+	//camera.lookAt(lightbulb2.position);
+	//controls.target.copy(SOG.position);
+	//alert(JSON.stringify(SOG.position));
+	//cam
+	//alert(JSON.stringify(camera.position));
+	//alert(JSON.stringify(controls.target));
+	//camera.target.position.x = PrimSettings.PositionY;
+	//camera.target.position.y = PrimSettings.PositionZ;
+	//camera.target.position.z = PrimSettings.PositionX;// = positionx.value;
+	
+	//alert(JSON.stringify(camera.position));
+	//alert(JSON.stringify(SOG.position));
+	//alert(JSON.stringify(SOG.scale));
+	//PrimSettings.PositionY = positiony.value;
+	//PrimSettings.PositionZ 
+}
+function taint() {
+	tainted = true;	
+}
+
+function HandleInputButtonPress(e,el,increment) {
+	var unicode = e.charCode? e.charCode : e.keyCode;
+	//alert(unicode);
+	var up = 38;
+	var down = 40;
+	var entr = 13;
+	if (unicode == up || unicode == down || unicode == entr) {
+		if (el) {
+			var val = parseFloat(el.value);
+			var increment = parseFloat(increment);
+			switch (unicode) {
+				case up:
+					el.value = val + increment
+					break;
+				case down:
+					el.value = val - increment
+					break;
+			}
+				
+		}
+		taint();
+	}
+	
+	
+}
+
+function UpdateEditOptions(primsettings) {
+	
+	switch (primsettings.BuildingBlockType) {
+		case "Box":
+		case "Cylinder":
+		case "Prism":
+		case "Sphere":
+			var el = document.getElementById("holesizebox");
+			if (el) {
+				el.className = "invisible";
+			}
+			break;
+		default:
+			var el = document.getElementById("holesizebox");
+			if (el) {
+				el.className = "";
+			}
+			break;
+	}
+	
+	if (PrimSettings.Hollow < 0.01) {
+		var el = document.getElementById("hollowshape");
+		if (el) 
+			el.disabled = true;	
+	} else {
+		var el = document.getElementById("hollowshape");
+		if (el) 
+			el.disabled = false;	
+	}
+	
+	
+		
+}
+
+function ReplaceNonNumeric(field,inputdata,defaultdata)
+{
+	var val = parseFloat(inputdata);
+	if (isNaN(val)) {
+		field.value = defaultdata;	
+	}
+}
+function ValidateNumeric(field,inputdata,mindata,maxdata,defaultdata)
+{
+	if (inputdata < mindata)
+		field.value = mindata;
+	if (inputdata > maxdata)
+		field.value = maxdata;
+	defaultdata = field.value;
+	return;
+	// todo if it still doesn't make sense 
+		field.value = defaultdata;
+}
+
+function ValidateSelect(sel,inputdata,defaultdata)
+{
+	var found = false;
+	
+	for(var i = 0, j = sel.options.length; i < j; ++i) {
+        if(sel.options[i].innerHTML == defaultdata) {
+           found = sel.options[i].innerHTML;
+           break;
+        }
+    }
+	if (!found)
+	{
+		SetSelect(sel,defaultdata);	
+	}
+	return found;
+}
+
+function SetSelect(sel,fvalue)
+{
+	sel.value = fvalue;
+	for(var i = 0, j = sel.options.length; i < j; ++i) {
+        if(sel.options[i].innerHTML == fvalue) {
+           sel.selectedIndex = i;
+		   
+           break;
+        }
+    }
+	
+}
+
+function SelectChange(sel) {
+	taint();
+}
+
+
+
+PrimBoxParams = function() {
+	this.PositionX = 0;
+	this.PositionY = 0;
+	this.PositionZ = 0;
+	this.ScaleX = 30;
+	this.ScaleY = 30;
+	this.ScaleZ = 30;
+	this.RotationX = 0;
+	this.RotationY = 0;
+	this.RotationZ = 0;
+	this.BuildingBlockType = 'Box';
+	this.PathCutB = 0;
+	this.PathCutE = 1.0;
+	this.Hollow = 0.0;
+	this.Skew = 0.0;
+	this.HollowShape = 'Default';
+	this.TwistB = 0;
+	this.TwistE = 0;
+	this.HoleSizeX = 1;
+	this.HoleSizeY = 0.50;
+	this.TaperX = 0;
+	this.TaperY = 0;
+	this.TopShearX = 0;
+	this.TopShearY = 0;
+	this.SliceB = 0; // profile cut
+	this.SliceE = 1;
+	this.Radius = 0;
+	this.Revolutions = 1.0;
+	this.Sides = 4;
+	this.HollowSides = 4;
+	this.ExtrudeType = JSPrimMesher.PathType.Linear;
+}
+PrimBoxParams.prototype = {
+	constructor : PrimBoxParams,
+	UniqueString : function() {
+		return "|" + this.BuildingBlockType + "|" + this.PathCutB + "|" + this.PathCutE + "|" + this.Hollow + "|" + this.Skew + "|" + this.HollowShape + "|" + this.TwistB + "|" + this.TwistE + "|" + this.HoleSizeX + "|" + this.HoleSizeY + "|" + this.TaperX + "|" + this.TaperY + "|" + this.TopShearX + "|" + this.TopShearY + "|" + this.SliceB + "|" + this.SliceE + "|" + this.Radius + "|" + this.Revolutions + "|" + this.Sides + "|" + this.HollowSides + "|" + this.ExtrudeType + "|" + this.BuildingBlockType + "|";
+	}
+}
+
+
+</script>
+
+<form id="objecttab" name="objtab">
+<div style="width : 800px; float:left;">
+	<div style="width: 375px; float:left;background-color:#555">
+    	<div style="width:160px;float:left;color:#A9A9C9;overflow: hidden">
+        	<div style="width: 160px; padding: 4px;">
+            	<div class="leftitem">Position (meters)</div>
+                <div class="leftitem">
+                	<div class="lefteditheader">X</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,1)" id="positionx" /></div>
+                </div>
+                <div class="leftitem">
+                	<div class="lefteditheader">Y</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,1)" id="positiony" /></div>
+                </div>
+                 <div class="leftitem">
+                	<div class="lefteditheader">Z</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,1)" id="positionz" /></div>
+                </div>
+            	<div class="leftitem">Size (meters)</div>
+                 <div class="leftitem">
+                	<div class="lefteditheader">X</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,5)" id="scalex" /></div>
+                </div>
+                 <div class="leftitem">
+                	<div class="lefteditheader">Y</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,5)" id="scaley" /></div>
+                </div>
+                 <div class="leftitem">
+                	<div class="lefteditheader">Z</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,5)" id="scalez" /></div>
+                </div>
+                
+                <div class="leftitem">Rotation (degrees)</div>
+                <div class="leftitem">
+                	<div class="lefteditheader">X</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,7)" id="rotationx" /></div>
+                </div>
+                <div class="leftitem">
+                	<div class="lefteditheader">Y</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,7)" id="rotationy" /></div>
+                </div>
+                <div class="leftitem">
+                	<div class="lefteditheader">Z</div>
+                    <div class="leftedititem"><input type="text" class="leftiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,7)" id="rotationz" /></div>
+                </div>
+            </div>
+      </div>
+        <div style="width:204px;float:clear;color:#A9A9C9;overflow: hidden">
+            <div style="width:204px; padding: 4px;">
+                <div class="rightitem">Building Block Type</div>
+                <div class="rightitem"><div class="rightedititem"><select id="primshape" class="selectitem" onChange="SelectChange(this)"><option>Box</option><option>Cylinder</option><option>Prism</option><option>Sphere</option><option>Torus</option><option>Tube</option><option>Ring</option></select></div></div>
+                <div class="rightitem">Path Cut Begin and End</div>
+                 <div class="rightitem"><div class="righteditheader">B</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onkeyup="HandleInputButtonPress(event,this,0.12)" onblur="taint()" id="pathcutb" /></div>
+                <div class="righteditheader">E</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onkeyup="HandleInputButtonPress(event,this,0.12)" onblur="taint()" id="pathcute" /></div></div>
+                 <div class="rightitem">
+                <div class="rightedititem">Hollow</div>
+                <div class="righteditheader">&nbsp;</div>
+                <div class="righteditheader">&nbsp;</div>
+                <div class="rightedititem">Skew</div></div>
+                <div class="rightitem">
+                <div class="rightedititemfullline"><input type="text" class="rightiteminputfullline" onkeyup="HandleInputButtonPress(event,this,0.12)" onblur="taint()" id="hollow" /></div>
+                <div class="righteditheader">&nbsp;</div>
+                
+                <div class="rightedititemfullline"><input type="text" class="rightiteminputfullline" onkeyup="HandleInputButtonPress(event,this,0.15)" onblur="taint()" id="skew" /></div></div>
+                <div class="rightitem">Hollow Shape</div>
+                 <div class="rightitem"><div class="rightedititem"><select id="hollowshape" class="selectitem" onChange="SelectChange(this)"><option>Default</option><option>Circle</option><option>Square</option><option>Triangle</option></select></div></div>
+                  <div class="rightitem">Twist(Begin and End)</div>
+                 <div class="rightitem"><div class="righteditheader">B</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,1)" id="twistb" /></div>
+                <div class="righteditheader">E</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,1)" id="twiste" /></div></div>
+                <div id="holesizebox">
+                 <div class="rightitem">Hole Size</div>
+                 <div class="rightitem"><div class="righteditheader">X</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()"onkeyup="HandleInputButtonPress(event,this,0.15)"  id="holesizex" /></div>
+                <div class="righteditheader">Y</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()"onkeyup="HandleInputButtonPress(event,this,0.15)"  id="holesizey" /></div></div>
+                </div>
+                <div class="rightitem">Taper</div>
+                 <div class="rightitem"><div class="righteditheader">X</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()"onkeyup="HandleInputButtonPress(event,this,0.15)"  id="taperx" /></div>
+                <div class="righteditheader">Y</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()"onkeyup="HandleInputButtonPress(event,this,0.15)"  id="tapery" /></div></div>
+                
+                 <div class="rightitem">Top Shear</div>
+                 <div class="rightitem"><div class="righteditheader">X</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()"onkeyup="HandleInputButtonPress(event,this,0.15)"  id="topsheerx" /></div>
+                <div class="righteditheader">Y</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()"onkeyup="HandleInputButtonPress(event,this,0.15)"  id="topsheery" /></div></div>
+                 <div class="rightitem">Profile Cut Begin and End</div>
+                 <div class="rightitem"><div class="righteditheader">B</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()"onkeyup="HandleInputButtonPress(event,this,0.15)"  id="profilecutb" /></div>
+                <div class="righteditheader">E</div>
+                <div class="rightedititem"><input type="text" class="rightiteminput" onblur="taint()"onkeyup="HandleInputButtonPress(event,this,0.15)"  id="profilecute" /></div></div>
+                 
+                <div class="rightitem">
+                <div class="rightedititem">Radius</div>
+                <div class="righteditheader">&nbsp;</div>
+                <div class="righteditheader">&nbsp;</div>
+                <div class="rightedititem">Revolutions</div></div>
+                <div class="rightitem">
+                <div class="rightedititemfullline"><input type="text" class="rightiteminputfullline" onblur="taint()" id="radius" /></div>
+                <div class="righteditheader">&nbsp;</div>
+                
+                <div class="rightedititemfullline"><input type="text" class="rightiteminputfullline" onblur="taint()" onkeyup="HandleInputButtonPress(event,this,1)" id="revolutions" /></div></div>
+            </div>
+            <div style="width:100%">&nbsp;</div>
+        </div>
+    </div>
+</form>
+<div class="renderer" id="container">*Hi*!</div>
+</div>
+<div style="width:800x;clear:both; white-space: pre-wrap;word-wrap: break-word;"><div id="debug"></div></div>
+</body>
+</html>
