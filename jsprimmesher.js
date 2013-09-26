@@ -1944,39 +1944,32 @@ JSVertexIndexer.VertexIndexer = function(primMesh)
     
 
     // create index lists
-    //console.log("primMesh.coords.length:" + primMesh.coords.length);
     for (var primFaceNumber = 0; primFaceNumber < this.numPrimFaces; primFaceNumber++)
     {
         // set all indices to -1 to indicate an invalid index
         var vertIndices = new Array(primMesh.coords.length);
-        //viewerVertIndices[primFaceNumber] = new Array();
         for (var i = 0; i < primMesh.coords.length; i++)
         {
             vertIndices[i] = -1;
-            //console.log("viewerVertIndices[" + primFaceNumber + "]:" + JSON.stringify(viewerVertIndices[primFaceNumber]));
         }
         viewerVertIndices[primFaceNumber] = vertIndices;
-        //viewerVertices[primFaceNumber] = new Array(numVertsPerPrimFace[primFaceNumber]);
+        
         this.viewerVertices[primFaceNumber] = new Array();
         this.viewerPolygons[primFaceNumber] = new Array();
     }
 
     for (var vfNdx = 0; vfNdx < primMesh.viewerFaces.length; vfNdx++)
-    //for (var vfNdx in primMesh.viewerFaces)
     {
         var vf = primMesh.viewerFaces[vfNdx];
-        //console.log("vfNdx:" + vfNdx + " vf:" + JSON.stringify(vf));
         var v1 = -1;
         var v2 = -1;
         var v3 = -1;
         
         var vertIndices = viewerVertIndices[vf.primFaceNumber];
-        console.log("face:" + vf.primFaceNumber + " vertIndices:" + JSON.stringify(vertIndices));
         
         var viewerVerts = this.viewerVertices[vf.primFaceNumber];
 
         // add the vertices
-        //console.log("indexer: vertIndices:" + JSON.stringify(vertIndices));
         if (vertIndices[vf.coordIndex1] < 0)
         {
             viewerVerts.push(new JSVertexIndexer.ViewerVertex(vf.v1, vf.n1, vf.uv1));
