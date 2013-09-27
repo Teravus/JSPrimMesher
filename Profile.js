@@ -211,14 +211,14 @@ JSPrimMesher.Profile = function ( psides, pprofileStart, pprofileEnd, phollow, p
 					var maxJ = this.numHollowVerts - 1;
 					for (var k = 0; k < this.numOuterVerts; k++) {
 						if (jt < maxJ) {
-							if (hollowAngles.angles[j + 1].angle - angles.angles[k].angle < angles.angles[k].angle - hollowAngles.angles[j].angle + 0.000001) {
-								var newFace = new JSPrimMesher.Face(k, numTotalVerts - j - 2, numTotalVerts - j - 1);
+							if (hollowAngles.angles[jt + 1].angle - angles.angles[k].angle < angles.angles[k].angle - hollowAngles.angles[jt].angle + 0.000001) {
+								var newFace = new JSPrimMesher.Face(k, numTotalVerts - jt - 2, numTotalVerts - jt - 1);
 								this.faces.push(newFace);
-								j += 1;
+								jt += 1;
 							}
 						}
 						
-						var newFacee = new JSPrimMesher.Face(numTotalVerts - j - 1, k, k + 1);
+						var newFacee = new JSPrimMesher.Face(numTotalVerts - jt - 1, k, k + 1);
 						this.faces.push(newFacee);
 					}
 				}
