@@ -965,8 +965,8 @@ JSPrimMesher.PrimMesh.prototype = {
 		var thisV = 0.0;
 		
 		var path = new JSPrimMesher.Path();
-		path.twistBegin = this.twistBegin;
-		path.twistEnd = this.twistEnd;
+		path.twistBegin = twistBegin;
+		path.twistEnd = twistEnd;
 		path.topShearX = this.topShearX;
 		path.topShearY = this.topShearY;
 		path.pathCutBegin = this.pathCutBegin;
