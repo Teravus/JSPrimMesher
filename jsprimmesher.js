@@ -1,4 +1,4 @@
-
+"use strict";
 /* 
 JSPrimMesher Copyright(c) Teravus @ Dahlia https://github.com/Teravus/JSPrimMesher
 JavaScript Port of PrimMesher - Teravus (teravus 47 gmail d0t c0m)
@@ -815,7 +815,7 @@ JSPrimMesher.PrimMesh.prototype = {
 		var steps = 1;
 		
 		var length = this.pathCutEnd - this.pathCutBegin;
-		normalsProcessed = false;
+		this.normalsProcessed = false;
 		
 		if (this.viewerMode && this.sides == 3) {
 			// prisms don't taper well so add some vertical resolution

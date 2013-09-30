@@ -281,7 +281,7 @@ JSPrimMesher.PrimMesh.prototype = {
 		var steps = 1;
 		
 		var length = this.pathCutEnd - this.pathCutBegin;
-		normalsProcessed = false;
+		this.normalsProcessed = false;
 		
 		if (this.viewerMode && this.sides == 3) {
 			// prisms don't taper well so add some vertical resolution
