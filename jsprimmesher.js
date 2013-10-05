@@ -32,7 +32,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
 */
 
-var JSPrimMesher = JSPrimMesher || { REVISION: '1' };
+var JSPrimMesher = JSPrimMesher || { REVISION: '2' };
 
 JSPrimMesher.Angle = function(p_angle, x, y) {
 	this.angle = p_angle || 0;
@@ -1030,9 +1030,9 @@ JSPrimMesher.PrimMesh.prototype = {
 						
 						if (pathType == JSPrimMesher.PathType.Linear)
 						{
-							newViewerFace.uv1.Flip();
-							newViewerFace.uv2.Flip();
-							newViewerFace.uv3.Flip();
+							newViewerFace.uv1 = newViewerFace.uv1.Flip();
+							newViewerFace.uv2 = newViewerFace.uv2.Flip();
+							newViewerFace.uv3 = newViewerFace.uv3.Flip();
 						}
 						
 						this.viewerFaces.push(newViewerFace);
@@ -1270,9 +1270,9 @@ JSPrimMesher.PrimMesh.prototype = {
 					
 					if (pathType == JSPrimMesher.PathType.Linear)
 					{
-						newViewerFace.uv1.Flip();
-						newViewerFace.uv2.Flip();
-						newViewerFace.uv3.Flip();
+						newViewerFace.uv1 = newViewerFace.uv1.Flip();
+						newViewerFace.uv2 = newViewerFace.uv2.Flip();
+						newViewerFace.uv3 = newViewerFace.uv3.Flip();
 					}
 					
 					this.viewerFaces.push(newViewerFace);

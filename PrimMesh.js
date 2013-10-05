@@ -496,9 +496,9 @@ JSPrimMesher.PrimMesh.prototype = {
 						
 						if (pathType == JSPrimMesher.PathType.Linear)
 						{
-							newViewerFace.uv1.Flip();
-							newViewerFace.uv2.Flip();
-							newViewerFace.uv3.Flip();
+							newViewerFace.uv1 = newViewerFace.uv1.Flip();
+							newViewerFace.uv2 = newViewerFace.uv2.Flip();
+							newViewerFace.uv3 = newViewerFace.uv3.Flip();
 						}
 						
 						this.viewerFaces.push(newViewerFace);
@@ -736,9 +736,9 @@ JSPrimMesher.PrimMesh.prototype = {
 					
 					if (pathType == JSPrimMesher.PathType.Linear)
 					{
-						newViewerFace.uv1.Flip();
-						newViewerFace.uv2.Flip();
-						newViewerFace.uv3.Flip();
+						newViewerFace.uv1 = newViewerFace.uv1.Flip();
+						newViewerFace.uv2 = newViewerFace.uv2.Flip();
+						newViewerFace.uv3 = newViewerFace.uv3.Flip();
 					}
 					
 					this.viewerFaces.push(newViewerFace);
