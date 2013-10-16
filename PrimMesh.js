@@ -752,5 +752,19 @@ JSPrimMesher.PrimMesh.prototype = {
 	}, 
 	ExtrudeCircular: function() {
 		this.Extrude(JSPrimMesher.PathType.Circular);
+	}, 
+	PlanarMapping: function(side, scale) {
+		var UnitX = new JSPrimMesher.Coord(1,0,0);
+		var UnitY = new JSPrimMesher.Coord(0,1,0);
+		var DefaultScaling = new JSPrimMesher.Coord(scale.X,scale.Y,scale.Z);
+		for (var ii = 0; ii < this.viewerFaces.length; ii++)
+		{
+			var vface = this.viewerFaces[ii];
+			if (vface.primFaceNumber == side)
+			{
+				vface.Planarize(DefaultScaling);
+				this.viewerFaces[ii] = vface;
+			}
+		}
 	}
 };

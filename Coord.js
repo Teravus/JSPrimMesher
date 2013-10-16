@@ -53,6 +53,9 @@ JSPrimMesher.Coord.Add = function ( v, a ) {
 JSPrimMesher.Coord.Mul = function ( v, m ) {
 	return new JSPrimMesher.Coord(v.X * m.X, v.Y * m.Y, v.Z * m.Z);
 };
+JSPrimMesher.Coord.Dot = function ( v1, v2 ) {
+	return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
+};
 JSPrimMesher.Coord.MulQuat = function ( v, q ) {
 	var c2 = new JSPrimMesher.Coord(0.0, 0.0, 0.0);
 	c2.X = q.W * q.W * v.X +

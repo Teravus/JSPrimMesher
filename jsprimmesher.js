@@ -269,6 +269,9 @@ JSPrimMesher.Coord.Add = function ( v, a ) {
 JSPrimMesher.Coord.Mul = function ( v, m ) {
 	return new JSPrimMesher.Coord(v.X * m.X, v.Y * m.Y, v.Z * m.Z);
 };
+JSPrimMesher.Coord.Dot = function ( v1, v2 ) {
+	return v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z;
+};
 JSPrimMesher.Coord.MulQuat = function ( v, q ) {
 	var c2 = new JSPrimMesher.Coord(0.0, 0.0, 0.0);
 	c2.X = q.W * q.W * v.X +
@@ -1286,6 +1289,20 @@ JSPrimMesher.PrimMesh.prototype = {
 	}, 
 	ExtrudeCircular: function() {
 		this.Extrude(JSPrimMesher.PathType.Circular);
+	}, 
+	PlanarMapping: function(side, scale) {
+		var UnitX = new JSPrimMesher.Coord(1,0,0);
+		var UnitY = new JSPrimMesher.Coord(0,1,0);
+		var DefaultScaling = new JSPrimMesher.Coord(scale.X,scale.Y,scale.Z);
+		for (var ii = 0; ii < this.viewerFaces.length; ii++)
+		{
+			var vface = this.viewerFaces[ii];
+			if (vface.primFaceNumber == side)
+			{
+				vface.Planarize(DefaultScaling);
+				this.viewerFaces[ii] = vface;
+			}
+		}
 	}
 };
 JSPrimMesher.Profile = function ( psides, pprofileStart, pprofileEnd, phollow, phollowSides, pcreateFaces, pcalcVertexNormals )
@@ -2079,6 +2096,31 @@ JSPrimMesher.ViewerFace.prototype = {
 		copy.coordIndex2 = this.coordIndex2;
 		copy.coordIndex3 = this.coordIndex3;
 		
+	},
+	Planarize : function(scale) {
+		this.PlanarCalc(this.v1,this.n1,this.uv1,scale);
+		this.PlanarCalc(this.v2,this.n2,this.uv2,scale);
+		this.PlanarCalc(this.v3,this.n3,this.uv3,scale);
+	},
+	PlanarCalc : function(pv1,pn1,puv1, pscale) {
+		var UnitX = new JSPrimMesher.Coord(1,0,0);
+		var UnitY = new JSPrimMesher.Coord(0,1,0);
+		var binormal;
+		var tangent;
+		var scaledPos;
+		var d;
+		d = JSPrimMesher.Coord.Dot(pn1,UnitX);
+		if (d >= 0.5 || d <= -0.5) {
+			binormal = UnitY.Copy();
+			if (pn1.X < 0) { binormal.X = binormal.X * -1;binormal.Y = binormal.Y * -1;binormal.Z = binormal.Z * -1; }
+		} else {
+			binormal = UnitX.Copy();
+			if (pn1.Y < 0) { binormal.X = binormal.X * -1;binormal.Y = binormal.Y * -1;binormal.Z = binormal.Z * -1; }
+		}
+		tangent = JSPrimMesher.Coord.Cross(binormal,pn1);
+		scaledPos = JSPrimMesher.Coord.Mul(pv1, pscale);
+		puv1.U = 1 + (JSPrimMesher.Coord.Dot(binormal,scaledPos) * 2 - 0.5);
+		puv1.V = -1 * (JSPrimMesher.Coord.Dot(tangent,scaledPos) * 2 - 0.5);
 	}
 			
 };
